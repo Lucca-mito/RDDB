@@ -1,2 +1,2 @@
 # RDDB
-Very pog innit
+Cookie clickah is a game about clicking a cookie.
