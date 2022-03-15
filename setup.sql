@@ -12,19 +12,19 @@ CREATE TABLE debug(
 );
 
 CREATE TABLE student(
-    uid           INT UNSIGNED PRIMARY KEY,
-    first_name    VARCHAR(50) NOT NULL,
-    last_name     VARCHAR(100) NOT NULL,
-    plan          ENUM('flex', 'anytime') NOT NULL DEFAULT 'flex',
-    total_charges INT UNSIGNED NOT NULL DEFAULT 0
+    uid        INT UNSIGNED PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name  VARCHAR(100) NOT NULL,
+    plan       ENUM('flex', 'anytime') NOT NULL DEFAULT 'flex'
 );
 
-CREATE TABLE flex_student(
-    uid     INT UNSIGNED PRIMARY KEY,
-    balance INT UNSIGNED NOT NULL DEFAULT 0,
+CREATE OR REPLACE VIEW student_total_charges AS
+    SELECT uid, SUM(order_total) total_charges
+    FROM rd_order NATURAL JOIN stduent GROUP BY uid;
 
-    FOREIGN KEY (uid) REFERENCES student(uid)
-);
+CREATE OR REPLACE VIEW flex_student_balance AS
+    SELECT uid, GREATEST(525 - total_charges, 0) balance
+    FROM student NATURAL JOIN student_total_charges WHERE plan = 'flex';
 
 CREATE TABLE item(
     item_id     INT UNSIGNED PRIMARY KEY,
@@ -52,6 +52,7 @@ CREATE TABLE rd_order(
     order_time   TIME NOT NULL DEFAULT (CURRENT_TIME()),
     uid          INT UNSIGNED NOT NULL,
     cashier_id   INT UNSIGNED NOT NULL,
+    order_total  INT UNSIGNED NOT NULL DEFAULT 0,
 
     FOREIGN KEY (uid) REFERENCES student(uid),
     FOREIGN KEY (cashier_id) REFERENCES worker(worker_id)
