@@ -101,4 +101,5 @@ CREATE OR REPLACE VIEW flex_student_balance AS
 CREATE UNIQUE INDEX idx_order ON rd_order (order_date, order_time);
 
 -- TODO: remove before submitting
+SOURCE setup-routines.sql;
 SOURCE load-data.sql;

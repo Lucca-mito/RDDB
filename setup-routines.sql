@@ -36,8 +36,8 @@ FOR EACH ROW BEGIN
 
     DECLARE curr_price NUMERIC(4, 2);
 
-    -- "invalid" means items_in_category > 1
-    DECLARE items_in_category TINYINT;
+    -- Whether there are multiple items per category.
+    DECLARE invalid BOOL;
     
     SELECT plan 
     FROM rd_order NATURAL JOIN student 
@@ -45,7 +45,15 @@ FOR EACH ROW BEGIN
     INTO orderer_plan;
 
     IF orderer_plan = 'anytime' THEN
-        insert into debug values('order_item was ordered by an anytimer');
+        SELECT MAX(item_count) > 1 FROM 
+            (SELECT COUNT(*) item_count 
+             FROM order_item NATURAL JOIN item 
+             GROUP BY category) _
+        INTO invalid;
+        
+        IF invalid THEN
+            CALL sp_cancel_order(NEW.order_number);
+        END IF;
     END IF;
 END!
 
