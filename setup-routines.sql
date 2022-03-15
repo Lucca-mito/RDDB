@@ -44,9 +44,8 @@ FOR EACH ROW BEGIN
     WHERE order_number = NEW.order_number 
     INTO orderer_plan;
 
-    IF plan = 'anytime' THEN
+    IF orderer_plan = 'anytime' THEN
         insert into debug values('order_item was ordered by an anytimer');
-        -- TODO: items_in_category
     END IF;
 END!
 
