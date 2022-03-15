@@ -43,7 +43,6 @@ CREATE TABLE flex_student(
 CREATE TABLE item(
     item_id     INT UNSIGNED PRIMARY KEY,
     item_name   VARCHAR(50) NOT NULL,
-    price       NUMERIC(4, 2) NOT NULL,
     -- If an item is bar-coded, it cannot be purchased by anytime students as 
     -- part of their meal plan. 
     is_barcode  BOOL NOT NULL DEFAULT FALSE,
@@ -53,7 +52,8 @@ CREATE TABLE item(
     -- Anytime students can only buy at max one item of each category in one
     -- order. 
     category    ENUM('meal', 'pastry', 'drink', 'other') 
-                NOT NULL DEFAULT 'other'
+                NOT NULL DEFAULT 'other',
+    price       NUMERIC(4, 2) NOT NULL
 );
 
 /*
