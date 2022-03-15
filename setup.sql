@@ -31,7 +31,7 @@ CREATE TABLE item(
     item_name   VARCHAR(50) NOT NULL,
     price       NUMERIC(4, 2) NOT NULL,
     is_barcode  BOOL NOT NULL DEFAULT FALSE,
-    vegan       BOOL NOT NULL DEFAULT FALSE,
+    vegetarian  BOOL NOT NULL DEFAULT FALSE,
     gluten_free BOOL NOT NULL DEFAULT FALSE,
     dairy_free  BOOL NOT NULL DEFAULT FALSE,
     category    ENUM('meal', 'pastry', 'drink', 'other') 
