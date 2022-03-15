@@ -14,7 +14,7 @@ CREATE TABLE debug(
 CREATE TABLE student(
     uid           INT UNSIGNED PRIMARY KEY,
     first_name    VARCHAR(50) NOT NULL,
-    last_name     VARCHAR(100),
+    last_name     VARCHAR(100) NOT NULL,
     plan          ENUM('flex', 'anytime') NOT NULL DEFAULT 'flex',
     total_charges INT UNSIGNED NOT NULL DEFAULT 0
 );
@@ -41,7 +41,7 @@ CREATE TABLE item(
 CREATE TABLE worker(
     worker_id      INT UNSIGNED PRIMARY KEY,
     first_name     VARCHAR(50) NOT NULL,
-    last_name      VARCHAR(100),
+    last_name      VARCHAR(100) NOT NULL,
     hours_per_week TINYINT UNSIGNED NOT NULL
 );
 

@@ -35,12 +35,14 @@ flex_student.balance because
 1. These fields haven't been changed yet: new orders add a row to rd_order 
     before they add a row to order_items, and only inserts into the letter 
     change student.total_charges and flex_student.balance.
-2. The order_items will fail to go through, since they must reference rd_order, which we will have deleted.
-DROP TRIGGER IF EXISTS trg_before_new_order!
+2. The order_items will fail to go through (since they must reference rd_order, 
+   which we will have deleted), so student.total_charges and 
+   flex_student.balance will not be affected. */
+/*DROP TRIGGER IF EXISTS trg_before_new_order!
 CREATE TRIGGER trg_before_new_order BEFORE INSERT ON order
 FOR EACH ROW BEGIN
 
-END!
+END!*/
 
 /* Whenever an order_item is added to an order: if the student is on flex, 
 check if they have enough balance; and if the student is on anytime, check if 
