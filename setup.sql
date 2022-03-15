@@ -2,7 +2,6 @@ DROP TABLE IF EXISTS order_item,
                      rd_order, 
                      worker, 
                      item, 
-                     flex_student, 
                      student, 
                      debug;
 
