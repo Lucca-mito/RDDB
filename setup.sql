@@ -21,14 +21,6 @@ CREATE TABLE student(
     plan       ENUM('flex', 'anytime') NOT NULL DEFAULT 'flex'
 );
 
-CREATE OR REPLACE VIEW student_total_charges AS
-    SELECT uid, SUM(order_total) total_charges
-    FROM rd_order NATURAL JOIN stduent GROUP BY uid;
-
-CREATE OR REPLACE VIEW flex_student_balance AS
-    SELECT uid, GREATEST(525 - total_charges, 0) balance
-    FROM student NATURAL JOIN student_total_charges WHERE plan = 'flex';
-
 /*
  * This table stores information about all food items available for purchase.
  */
@@ -95,6 +87,14 @@ CREATE TABLE order_item(
     FOREIGN KEY (item_id) REFERENCES item(item_id)
                                 ON UPDATE CASCADE
 );
+
+CREATE OR REPLACE VIEW student_total_charges AS
+    SELECT uid, SUM(order_total) total_charges
+    FROM rd_order GROUP BY uid;
+
+CREATE OR REPLACE VIEW flex_student_balance AS
+    SELECT uid, GREATEST(525 - total_charges, 0) balance
+    FROM student_total_charges NATURAL JOIN student WHERE plan = 'flex';
 
 -- Create index on order date and time to make sorted or filtering on times 
 -- easier. 
