@@ -12,7 +12,7 @@ CREATE TABLE debug(
 );
 
 CREATE TABLE student(
-    uid           INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    uid           INT UNSIGNED PRIMARY KEY,
     first_name    VARCHAR(50) NOT NULL,
     last_name     VARCHAR(100),
     plan          ENUM('flex', 'anytime') NOT NULL DEFAULT 'flex',
@@ -27,8 +27,9 @@ CREATE TABLE flex_student(
 );
 
 CREATE TABLE item(
-    item_id     INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    item_id     INT UNSIGNED PRIMARY KEY,
     item_name   VARCHAR(50) NOT NULL,
+    price       NUMERIC(4, 2) NOT NULL,
     is_barcode  BOOL NOT NULL DEFAULT FALSE,
     vegan       BOOL NOT NULL DEFAULT FALSE,
     gluten_free BOOL NOT NULL DEFAULT FALSE,
@@ -38,7 +39,7 @@ CREATE TABLE item(
 );
 
 CREATE TABLE worker(
-    worker_id      INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    worker_id      INT UNSIGNED PRIMARY KEY,
     first_name     VARCHAR(50) NOT NULL,
     last_name      VARCHAR(100),
     hours_per_week TINYINT UNSIGNED NOT NULL
@@ -47,8 +48,8 @@ CREATE TABLE worker(
 -- `order` is a reserved keyword, so we use `rd_order` instead
 CREATE TABLE rd_order(
     order_number INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    order_date   DATE NOT NULL,
-    order_time   TIME NOT NULL,
+    order_date   DATE NOT NULL DEFAULT (CURDATE()),
+    order_time   TIME NOT NULL DEFAULT (CURRENT_TIME()),
     uid          INT UNSIGNED NOT NULL,
     cashier_id   INT UNSIGNED NOT NULL,
 

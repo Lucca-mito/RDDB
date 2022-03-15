@@ -10,16 +10,24 @@ DELIMITER !
    deletes the entreis of order_item associated with this order.
 2. Decreases student.total_charges.
 3. If the student is on flex, increases flex_student.balance. */
-DROP PROCEDURE IF EXISTS sp_cancel_order;
+DROP PROCEDURE IF EXISTS sp_cancel_order!
 CREATE PROCEDURE sp_cancel_order(o_num INT UNSIGNED)
 BEGIN
     DELETE FROM rd_order WHERE order_number = o_num;
     -- TODO: decrease students.total_charges and, if applicable, flex_student.balance
 END!
 
--- TODO: create trigger for adding flex students to flex_student
+/* Check if the new student chose the flex plan. 
+If they did, add them to flex_student. */
+DROP TRIGGER IF EXISTS trg_after_new_student!
+CREATE TRIGGER trg_after_new_student AFTER INSERT ON student
+FOR EACH ROW BEGIN
+    IF NEW.plan = 'flex' THEN
+        INSERT INTO flex_student(uid) VALUES (NEW.uid);
+    END IF;
+END!
 
--- TODO: create trigger after insert on rd_order to check if it's been 30+ minutes (if student is on anytime)
+-- TODO: create trigger after insert on rd_order to check if it's been 30+ minutes (if student is on anytime). If so, delete the rd_order. We don't have to change student.total_charges or flex_student.balance since the order_items will fail to go through.
 
 
 /* Whenever an order_item is added to an order: if the student is on flex, 
