@@ -1,4 +1,4 @@
-item_id,item_name,is_barcode,vegetarian,gluten_free,dairy_free,item_category,price
+item_id,item_name,is_barcode,vegetarian,gluten_free,dairy_free,category,price
 1001,Avocado Toast,0,1,0,1,meal,6.95
 1002,Breakfast Sandwich,0,0,0,0,meal,4.25
 1003,Caprese,0,1,0,0,meal,6.95
