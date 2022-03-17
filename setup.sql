@@ -63,12 +63,15 @@ CREATE TABLE rd_order(
     -- The UID of the purchaser.
     uid          INT UNSIGNED NOT NULL,
     -- The id of the cashier who served the order.
-    cashier_id   INT UNSIGNED NOT NULL,
-    order_total  INT UNSIGNED NOT NULL DEFAULT 0,
+    worker_id   INT UNSIGNED NOT NULL,
+    -- 0.00 if the student is on anytime, otherwise the total cost of all items 
+    -- on the order. order_total only stores the amount that will is charged
+    -- to the student. 
+    order_total  NUMERIC(5, 2) UNSIGNED NOT NULL DEFAULT 0,
 
     FOREIGN KEY (uid) REFERENCES student(uid) 
      ON UPDATE CASCADE,
-    FOREIGN KEY (cashier_id) REFERENCES worker(worker_id)
+    FOREIGN KEY (worker_id) REFERENCES worker(worker_id)
      ON UPDATE CASCADE
 );
 
@@ -99,6 +102,7 @@ CREATE OR REPLACE VIEW flex_student_balance AS
 -- Create index on order date and time to make sorted or filtering on times 
 -- easier. 
 CREATE UNIQUE INDEX idx_order ON rd_order (order_date, order_time);
+-- DROP INDEX idx_order ON rd_order
 
 -- TODO: remove before submitting
 SOURCE setup-routines.sql;
