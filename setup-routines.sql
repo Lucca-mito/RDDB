@@ -58,3 +58,77 @@ FOR EACH ROW BEGIN
 END!
 
 DELIMITER ;
+
+
+-- A procedure which takes one int argument, the number of fake rows of orders
+-- to add to rd_order, and selects random students with random cashiers, and 
+-- a random number of items between 1 and 3 to order. 
+DROP PROCEDURE IF EXISTS generate_order_data;
+DELIMITER !
+CREATE PROCEDURE generate_order_data(
+    num_orders_to_add INT
+)
+BEGIN
+  DECLARE i INT DEFAULT 0; -- keeps track of number of orders already created
+  -- Randomly generated values for current order
+  DECLARE i_uid INT;
+  DECLARE i_cashier INT;
+  DECLARE i_date_time TIME;
+  DECLARE i_date DATE;
+  DECLARE i_time TIME;
+  DECLARE n INT; -- random number of items between 1 and 3 for order i 
+  -- order id is automatically set, but is retrieved here because it is needed
+  -- to add items to the order_item table
+  DECLARE i_order_id INT; 
+  -- Used to randomly pick items within order i 
+  DECLARE j INT DEFAULT 0;
+  DECLARE rand_item INT;
+
+  -- Select random time for order
+  WHILE i < num_orders_to_add DO
+    SELECT DATE_FORMAT(
+    from_unixtime(
+        rand() * 
+            (unix_timestamp('2021-9-20 8:00:00') - unix_timestamp('2022-3-16 22:00:00')) + 
+            unix_timestamp('2022-3-16 22:00:00')
+                  ), '%Y-%m-%d %H:%i:%s') AS d INTO i_date_time;
+    SELECT DATE(i_date_time), TIME(i_date_time) INTO i_date, i_time;
+
+    -- Pick a random student for order
+    SELECT uid FROM student ORDER BY RAND() LIMIT 1 INTO i_uid;
+
+    -- Pick a random worker for order
+    SELECT worker_id FROM worker ORDER BY RAND() LIMIT 1 INTO i_cashier;
+
+    -- Create the new order
+    INSERT INTO rd_order (order_date, order_time, `uid`, cashier_id) VALUES (
+      i_date, i_time, i_uid, i_cashier);
+    
+    -- Retrieve order number
+    SELECT order_number FROM rd_order WHERE order_date = i_date AND 
+    order_time = i_time AND uid = i_uid AND cashier_id = i_cashier INTO 
+    i_order_id;
+
+    -- Add order items
+    -- Randomly pick between 1 and 3 items to order
+    SELECT FLOOR(RAND()*(3-1)+1) INTO n;
+    
+    SET j = 0;
+    WHILE j < n DO
+      -- Pick a random item to order
+      -- Assumes trigger on order_item works
+      SELECT item_id FROM item ORDER BY RAND() LIMIT 1 INTO rand_item;
+      INSERT INTO order_item(order_number, item_id) 
+      VALUES (i_order_id, rand_item);
+      SET j = j + 1;
+    END WHILE; 
+
+    SET i = i + 1;
+
+  END WHILE;
+END ! 
+DELIMITER ;
+
+-- If you want to test test function 
+-- CALL generate_order_data(3);
+
