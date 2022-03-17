@@ -103,28 +103,32 @@ BEGIN
     -- Pick a random worker for order
     SELECT worker_id FROM worker ORDER BY RAND() LIMIT 1 INTO i_cashier;
 
-    -- Create the new order
-    INSERT INTO rd_order (order_date, order_time, `uid`, worker_id) VALUES (
-      i_date, i_time, i_uid, i_cashier);
-    
-    -- Retrieve order number
-    SELECT order_number FROM rd_order WHERE order_date = i_date AND 
-    order_time = i_time AND uid = i_uid AND worker_id = i_cashier INTO 
-    i_order_id;
+    IF NOT EXISTS (SELECT * FROM 
+    rd_order WHERE order_date = i_date AND order_time = i_time)
+    THEN 
+      -- Create the new order
+      INSERT INTO rd_order (order_date, order_time, `uid`, worker_id) VALUES (
+        i_date, i_time, i_uid, i_cashier);
+      
+      -- Retrieve order number
+      SELECT order_number FROM rd_order WHERE order_date = i_date AND 
+      order_time = i_time AND uid = i_uid AND worker_id = i_cashier INTO 
+      i_order_id;
 
-    -- Add order items
-    -- Randomly pick between 1 and 3 items to order
-    SELECT FLOOR(RAND()*(3-1)+1) INTO n;
-    
-    SET j = 0;
-    WHILE j < n DO
-      -- Pick a random item to order
-      -- Assumes trigger on order_item works
-      SELECT item_id FROM item ORDER BY RAND() LIMIT 1 INTO rand_item;
-      INSERT INTO order_item(order_number, item_id) 
-      VALUES (i_order_id, rand_item);
-      SET j = j + 1;
-    END WHILE; 
+      -- Add order items
+      -- Randomly pick between 1 and 3 items to order
+      SELECT FLOOR(RAND()*(3-1)+1) INTO n;
+      
+      SET j = 0;
+      WHILE j < n DO
+        -- Pick a random item to order
+        -- Assumes trigger on order_item works
+        SELECT item_id FROM item ORDER BY RAND() LIMIT 1 INTO rand_item;
+        INSERT INTO order_item(order_number, item_id) 
+        VALUES (i_order_id, rand_item);
+        SET j = j + 1;
+      END WHILE; 
+    END IF;
 
     SET i = i + 1;
 
