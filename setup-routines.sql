@@ -92,7 +92,10 @@ BEGIN
             (unix_timestamp('2021-9-20 8:00:00') - unix_timestamp('2022-3-16 22:00:00')) + 
             unix_timestamp('2022-3-16 22:00:00')
                   ), '%Y-%m-%d %H:%i:%s') AS d INTO i_date_time;
-    SELECT DATE(i_date_time), TIME(i_date_time) INTO i_date, i_time;
+    SELECT TIME(i_date_time) INTO i_time;
+
+    -- Select random date from the past 100 days
+    SELECT CURRENT_DATE - INTERVAL FLOOR(RAND() * 100) DAY INTO i_date;
 
     -- Pick a random student for order
     SELECT uid FROM student ORDER BY RAND() LIMIT 1 INTO i_uid;
@@ -101,12 +104,12 @@ BEGIN
     SELECT worker_id FROM worker ORDER BY RAND() LIMIT 1 INTO i_cashier;
 
     -- Create the new order
-    INSERT INTO rd_order (order_date, order_time, `uid`, cashier_id) VALUES (
+    INSERT INTO rd_order (order_date, order_time, `uid`, worker_id) VALUES (
       i_date, i_time, i_uid, i_cashier);
     
     -- Retrieve order number
     SELECT order_number FROM rd_order WHERE order_date = i_date AND 
-    order_time = i_time AND uid = i_uid AND cashier_id = i_cashier INTO 
+    order_time = i_time AND uid = i_uid AND worker_id = i_cashier INTO 
     i_order_id;
 
     -- Add order items
@@ -131,4 +134,5 @@ DELIMITER ;
 
 -- If you want to test test function 
 -- CALL generate_order_data(3);
+
 
