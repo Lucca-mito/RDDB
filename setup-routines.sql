@@ -3,6 +3,11 @@ CREATE FUNCTION get_balance(uid INT UNSIGNED)
 RETURNS INT UNSIGNED DETERMINISTIC
 RETURN (SELECT balance FROM flex_student WHERE student.uid = uid);
 
+DROP FUNCTION IF EXISTS get_price;
+CREATE FUNCTION get_price(item_id INT UNSIGNED)
+RETURNS NUMERIC(4, 2) DETERMINISTIC
+RETURN (SELECT price FROM item WHERE item.item_id = item_id);
+
 DELIMITER !
 
 /* Deletes the order from rd_order, which (via ON DELETE CASCADE) also deletes 
@@ -16,58 +21,53 @@ END!
 
 /* Whenever a student places an order: if the student is on anytime, check if 
 it's been 30+ minutes since their last order. If not, cancel this order (by 
-raising SQLSTATE 45000). */
-/*
+raising SQLSTATE 45000).
 DROP TRIGGER IF EXISTS trg_before_new_order!
 CREATE TRIGGER trg_before_new_order BEFORE INSERT ON order
 FOR EACH ROW BEGIN
 
-END!
-*/
+END!*/
 
-/* Whenever an order_item is added: 
-1. Increase the order_total of the corresponding rd_order.
-2. If the student is on anytime, check if the order doesn't contain multiple 
-   items of the same category. If it does, cancel the order. */
+/* Before an order_item is added, set the amount_charged as appropriate. */
 DROP TRIGGER IF EXISTS trg_after_new_order_item!
-CREATE TRIGGER trg_after_new_order_item AFTER INSERT ON order_item
+CREATE TRIGGER trg_after_new_order_item BEFORE INSERT ON order_item
 FOR EACH ROW BEGIN
     DECLARE orderer_plan ENUM('flex', 'anytime');
 
-    DECLARE curr_price NUMERIC(4, 2);
-
-    -- Whether there are multiple items per category.
-    DECLARE invalid BOOL;
+    -- For anytime students:
+    --   Whether the item is barcode,
+    --   the category of this item, and
+    --   whether this order already contains an item of the same category,
+    DECLARE is_barcode BOOL;
+    DECLARE category ENUM('meal', 'pastry', 'drink', 'other');
+    DECLARE repeats_category BOOL;
     
-    SELECT plan 
-    FROM rd_order NATURAL JOIN student 
+    SELECT plan FROM rd_order NATURAL JOIN student
     WHERE order_number = NEW.order_number 
     INTO orderer_plan;
 
-    IF orderer_plan = 'anytime' THEN
-        SELECT MAX(item_count) > 1 FROM 
-            (SELECT COUNT(*) item_count 
-             FROM order_item NATURAL JOIN item 
-             GROUP BY category) _
-        INTO invalid;
-        
-        IF invalid THEN
-            CALL sp_cancel_order(NEW.order_number);
+    IF orderer_plan = 'flex' THEN
+        SET NEW.amount_charged = get_price(NEW.item_id);
+    ELSE
+        SELECT item.category, item.is_barcode FROM item
+        WHERE item_id = NEW.item_id
+        INTO category, is_barcode;
+
+        SELECT COUNT(*) > 0 FROM order_item NATURAL JOIN item
+        WHERE item.category = category
+        INTO repeats_category;
+
+        IF repeats_category OR is_barcode THEN
+            SET NEW.amount_charged = get_price(NEW.item_id);
         END IF;
     END IF;
 END!
 
-DELIMITER ;
-
-
--- A procedure which takes one int argument, the number of fake rows of orders
--- to add to rd_order, and selects random students with random cashiers, and 
--- a random number of items between 1 and 3 to order. 
-DROP PROCEDURE IF EXISTS generate_order_data;
-DELIMITER !
-CREATE PROCEDURE generate_order_data(
-    num_orders_to_add INT
-)
+/* A procedure which takes one int argument, the number of fake rows of orders
+to add to rd_order, and selects random students with random cashiers, and 
+a random number of items between 1 and 3 to order. */
+DROP PROCEDURE IF EXISTS generate_order_data!
+CREATE PROCEDURE generate_order_data(num_orders_to_add INT)
 BEGIN
   DECLARE i INT DEFAULT 0; -- keeps track of number of orders already created
   -- Randomly generated values for current order
@@ -89,9 +89,10 @@ BEGIN
     SELECT DATE_FORMAT(
     from_unixtime(
         rand() * 
-            (unix_timestamp('2021-9-20 8:00:00') - unix_timestamp('2022-3-16 22:00:00')) + 
-            unix_timestamp('2022-3-16 22:00:00')
-                  ), '%Y-%m-%d %H:%i:%s') AS d INTO i_date_time;
+            (unix_timestamp('2021-9-20 8:00:00') - 
+            unix_timestamp('2022-3-16 22:00:00')) + 
+        unix_timestamp('2022-3-16 22:00:00')), 
+        '%Y-%m-%d %H:%i:%s') AS d INTO i_date_time;
     SELECT TIME(i_date_time) INTO i_time;
 
     -- Select random date from the past 100 days
@@ -103,12 +104,12 @@ BEGIN
     -- Pick a random worker for order
     SELECT worker_id FROM worker ORDER BY RAND() LIMIT 1 INTO i_cashier;
 
-    IF NOT EXISTS (SELECT * FROM 
-    rd_order WHERE order_date = i_date AND order_time = i_time)
+    IF NOT EXISTS 
+      (SELECT * FROM rd_order WHERE order_date = i_date AND order_time = i_time)
     THEN 
       -- Create the new order
-      INSERT INTO rd_order (order_date, order_time, `uid`, worker_id) VALUES (
-        i_date, i_time, i_uid, i_cashier);
+      INSERT INTO rd_order (order_date, order_time, uid, worker_id) 
+      VALUES (i_date, i_time, i_uid, i_cashier);
       
       -- Retrieve order number
       SELECT order_number FROM rd_order WHERE order_date = i_date AND 
@@ -136,7 +137,5 @@ BEGIN
 END ! 
 DELIMITER ;
 
--- If you want to test test function 
+-- If you want to test it
 -- CALL generate_order_data(3);
-
-
