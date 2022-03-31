@@ -110,7 +110,5 @@ CREATE OR REPLACE VIEW student_total_charges AS
 -- easier. 
 CREATE UNIQUE INDEX idx_order ON rd_order (order_date, order_time);
 
--- TODO: remove before submitting
-SOURCE setup-routines.sql;
-SOURCE load-data.sql;
-CALL generate_order_data(1000);
+/*SOURCE setup-routines.sql;
+SOURCE load-data.sql;*/

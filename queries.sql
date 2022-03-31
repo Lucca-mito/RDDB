@@ -17,7 +17,7 @@ WITH hourly_orders AS
 most_orders AS 
   (SELECT MAX(num_orders) as num_orders FROM hourly_orders)
 SELECT hour_of_day, num_orders AS max_orders FROM 
-  (SELECT * FROM most_orders NATURAL JOIN hourly_orders) t;
+  (SELECT * FROM most_orders NATURAL JOIN hourly_orders) _;
 
 -- A student wants to get a list of all vegan options for ease 
 -- sorted by popularity (descending). 
@@ -38,5 +38,14 @@ FROM student_total_charges NATURAL JOIN student WHERE plan = 'flex';
 -- certiainly return the empty set.
 SELECT uid, first_name, last_name, total_charges, plan
 FROM student NATURAL JOIN student_total_charges
-WHERE plan = 'anytime';
-AND total_charges >= 1000
+WHERE plan = 'anytime'
+AND total_charges >= 1000;
+
+-- #RedDoorFave: RDDB has the fun social component of sharing your 
+-- favorite Red Door item. Find the most-ordered items of a given student. 
+-- (here uid=1002, but we'll parametrize this in the app.)
+SELECT item_name, COUNT(*) times_ordered 
+FROM order_item NATURAL JOIN rd_order NATURAL JOIN item NATURAL JOIN student 
+WHERE uid=1002 GROUP BY item_name
+ORDER BY times_ordered DESC 
+LIMIT 1;

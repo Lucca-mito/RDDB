@@ -19,15 +19,6 @@ BEGIN
     DELETE FROM rd_order WHERE order_number = o_num;
 END!
 
-/* Whenever a student places an order: if the student is on anytime, check if 
-it's been 30+ minutes since their last order. If not, cancel this order (by 
-raising SQLSTATE 45000).
-DROP TRIGGER IF EXISTS trg_before_new_order!
-CREATE TRIGGER trg_before_new_order BEFORE INSERT ON order
-FOR EACH ROW BEGIN
-
-END!*/
-
 /* Before an order_item is added, set the amount_charged as appropriate. */
 DROP TRIGGER IF EXISTS trg_after_new_order_item!
 CREATE TRIGGER trg_after_new_order_item BEFORE INSERT ON order_item
@@ -38,8 +29,8 @@ FOR EACH ROW BEGIN
     --   Whether the item is barcode,
     --   the category of this item, and
     --   whether this order already contains an item of the same category,
-    DECLARE is_barcode BOOL;
-    DECLARE category ENUM('meal', 'pastry', 'drink', 'other');
+    DECLARE new_is_barcode BOOL;
+    DECLARE new_category ENUM('meal', 'pastry', 'drink', 'other');
     DECLARE repeats_category BOOL;
     
     SELECT plan FROM rd_order NATURAL JOIN student
@@ -51,13 +42,14 @@ FOR EACH ROW BEGIN
     ELSE
         SELECT item.category, item.is_barcode FROM item
         WHERE item_id = NEW.item_id
-        INTO category, is_barcode;
+        INTO new_category, new_is_barcode;
 
         SELECT COUNT(*) > 0 FROM order_item NATURAL JOIN item
-        WHERE item.category = category
+        WHERE item.category = new_category
+        AND order_number = NEW.order_number
         INTO repeats_category;
 
-        IF repeats_category OR is_barcode THEN
+        IF repeats_category OR new_is_barcode THEN
             SET NEW.amount_charged = get_price(NEW.item_id);
         END IF;
     END IF;
