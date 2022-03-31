@@ -88,8 +88,8 @@ RETURN
 -- [Problem 1c]
 -- Add at least two users into your user_info table so that when we run this 
 -- file, we will have examples users in the database.
-CALL sp_add_user('jbutt', 1000, 'flexer', FALSE);
-CALL sp_add_user('jdarakjy', 1001, 'anytimer', FALSE);
+CALL sp_add_user('jbutt', 1000, 'theflexer', FALSE);
+CALL sp_add_user('jdarakjy', 1001, 'theanytimer', FALSE);
 CALL sp_add_user('pmalone', 1, 'rockstar', TRUE);
 
 -- [Problem 1d]
