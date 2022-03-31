@@ -9,10 +9,10 @@ To set up the database:
 - Load the authentication data with `source setup-passwords.sql` and `source grant-permissions.sql` (in whatever other).
 - For students: use RDDB via `python app_student.py`. Log in with your RDDB username (not your UID) and password. For testing the application, we have created an RDDB account for two students, one for each meal plan:
 
-| RDDB username | RDDB password | Student | UID | Plan|
-| ----------------------------------------------------|
-|jbutt | theflexer | James Butt | 1000 | flex|
-|jdarakjy | theanytimer | James Butt | 1000 | flex|
+| RDDB username | RDDB password | Student    | UID  | Plan |
+|---------------|---------------|------------|------|------|
+| jbutt         | theflexer     | James Butt | 1000 | flex |
+| jdarakjy      | theanytimer   | James Butt | 1000 | flex |
 
 - For 
 
