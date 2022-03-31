@@ -144,6 +144,33 @@ def browse_menu():
 
     request_menu(where_clause)
 
+def item_details():
+    print()
+    print("Enter the item name (or part of it). Enter q to cancel.")
+    ans = prompt()
+
+    if ans == 'q':
+        return
+    
+    print()
+
+    sql = "SELECT item_id, item_name, price, is_barcode, vegetarian, gluten_free, dairy_free FROM item WHERE item_name LIKE '%%%s%%';" % (ans, )
+
+    rows = sql_query(sql)
+    for row in rows:
+        item_id, item_name, price, is_barcode, vegetarian, gluten_free, dairy_free = row
+
+        barcode_indicator = '*' if is_barcode else ''
+
+        dietary_indicators = []
+
+        if vegetarian: dietary_indicators.append('v')
+        if gluten_free: dietary_indicators.append('gf')
+        if dairy_free: dietary_indicators.append('df')
+
+        print(f'#{item_id}: {item_name} (${price}{barcode_indicator}) ' +
+              ' '.join(dietary_indicators))
+
 def view_order(order_number):
     print()
 
@@ -174,6 +201,7 @@ def view_order_history():
               'What are you waiting for? Red Door awaits.')
         return
 
+    print()
     print(f"You've made {n} order{'s' if n > 1 else ''} at Red Door:")
     for row in rows:
         order_number, order_date, order_time = row
@@ -223,6 +251,7 @@ def show_options():
     print()
     print('What would you like to do?')
     print('  (m) - browse the menu')
+    print('  (s) - search for an item and view details')
     print('  (h) - view your order history')
     print("  (f) - view someone's #RedDoorFave")
     print('  (c) - check your charges and balance')
@@ -232,7 +261,9 @@ def show_options():
     
     if ans == 'm':
         browse_menu()
-    if ans == 'h':
+    elif ans == 's':
+        item_details()
+    elif ans == 'h':
         view_order_history()
     elif ans == 'q':
         quit_ui()

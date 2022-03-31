@@ -72,7 +72,7 @@ def login():
 def prompt():
     return input('>>> ')
 
-def get_item_id():
+def item_details():
     print()
     print("Enter the item name (or part of it). Enter q to cancel.")
     ans = prompt()
@@ -82,12 +82,22 @@ def get_item_id():
     
     print()
 
-    sql = "SELECT item_name, item_id FROM item WHERE item_name LIKE '%%%s%%';" % (ans, )
+    sql = "SELECT item_id, item_name, price, is_barcode, vegetarian, gluten_free, dairy_free FROM item WHERE item_name LIKE '%%%s%%';" % (ans, )
 
     rows = sql_query(sql)
     for row in rows:
-        item_name, item_id = row
-        print(f'{item_name}: {item_id}')
+        item_id, item_name, price, is_barcode, vegetarian, gluten_free, dairy_free = row
+
+        barcode_indicator = '*' if is_barcode else ''
+
+        dietary_indicators = []
+
+        if vegetarian: dietary_indicators.append('v')
+        if gluten_free: dietary_indicators.append('gf')
+        if dairy_free: dietary_indicators.append('df')
+
+        print(f'#{item_id}: {item_name} (${price}{barcode_indicator}) ' +
+              ' '.join(dietary_indicators))
 
 def place_order():
     print()
@@ -99,6 +109,13 @@ def place_order():
 
     (order_number,) = sql_query('SELECT MAX(order_number) FROM rd_order;', 
                                 fetchone=True)
+
+    print()
+    print('Menu:')
+    print('{:<32} {}'.format('Item name', 'Item ID'))
+    print('-' * 40)
+    for item_name, item_id in sql_query('SELECT item_name, item_id FROM item;'):
+        print('{:<32} {}'.format(item_name, item_id))
 
     while True:
         print()
@@ -112,21 +129,74 @@ def place_order():
             'INSERT INTO order_item(order_number, item_id) VALUES (%s, %s);' 
             % (order_number, item_id))
 
+        (item_name,) = sql_query(
+            'SELECT item_name FROM item WHERE item_id = %s' % (item_id,), 
+            fetchone=True)
+
+        print(f'{item_name} added to order #{order_number}.')
+
     print(f'Order #{order_number} has been placed!')
+
+def cancel_order():
+    print()
+    print('What student is asking for a refund?')
+    uid = prompt()
+
+    sql = ('SELECT order_number, order_date, order_time FROM rd_order ' +
+           'WHERE uid=%s' % (uid,))
+
+    rows = sql_query(sql)
+    n = len(rows)
+
+    if n == 0:
+        print('This student has not made any orders.')
+        return
+
+    print()
+    print(f"This student has made {n} order{'s' if n > 1 else ''} at Red Door:")
+
+    for row in rows:
+        order_number, order_date, order_time = row
+        print(f'Order #{order_number} on {order_date} at {order_time}')
+
+    if n > 1:
+        print()
+        print('Cancel and refund which order?')
+        order_number = prompt()
+    else:
+        order_number = rows[0][0]
+
+    while True:
+        print()
+        print(f'Cancel order {order_number}? (y/n)')
+        ans = prompt()
+
+        if ans == 'y':
+            sql_query('CALL sp_cancel_order(%s);' % (order_number, ))
+            print(f'Order {order_number} canceled successfully.')
+            break
+        elif ans == 'n':
+            print('Ok then')
+            break
+        else:
+            print('Please enter y or n.')
 
 def show_options():
     print()
     print('What would you like to do?')
-    print('  (i) - find the id of an item')
+    print('  (s) - search for an item and view details')
     print('  (p) - place an order')
+    print('  (c) - cancel and refund an order')
     print('  (q) - quit')
 
     ans = prompt()
 
-    if ans == 'i':
-        get_item_id()
+    if ans == 's':
+        item_details()
     elif ans == 'p':
         place_order()
+    elif ans == 'c':
+        cancel_order()
     elif ans == 'q':
         quit_ui()
     else:

@@ -5,7 +5,7 @@ GRANT ALL PRIVILEGES ON rddb.* TO 'admin'@'localhost';
 
 DROP USER IF EXISTS 'staff'@'localhost';
 CREATE USER 'staff'@'localhost' IDENTIFIED BY 'vAjmu-ziwqu-8hefr';
-GRANT SELECT, INSERT, UPDATE, DELETE ON rddb.* TO 'staff'@'localhost';
+GRANT SELECT, INSERT, EXECUTE ON rddb.* TO 'staff'@'localhost';
 
 /* Orders are placed by the staff, not the students. Students  only need the 
 SELECT privilege. This simplifies matters greatly, as we only need one database 
