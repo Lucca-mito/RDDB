@@ -1,6 +1,6 @@
 # RDDB
 ## Red Door Database
-A database for management of the Red Door Marketplace at Caltech. 
+A database and application for management of the Red Door Marketplace at Caltech. 
 
 To set up the database:
 - First, create the database tables using setup.sql.
