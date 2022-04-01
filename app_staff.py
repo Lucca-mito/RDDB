@@ -4,7 +4,7 @@ import mysql.connector.errorcode as errorcode
 
 # Debugging flag to print errors when debugging that shouldn't be visible
 # to an actual client. Set to False when done testing.
-DEBUG = True
+DEBUG = False
 
 # The ID of the Red Door staff member currently logged in.
 worker_id = None
@@ -34,8 +34,8 @@ def get_conn():
         elif DEBUG:
             sys.stderr(err)
         else:
-            sys.stderr('An error occurred, please contact the database '
-            'administrator for RDDB.')
+            sys.stderr('Could not connect to RDDB, please contact the database '
+                       'administrator.')
         sys.exit(1)
 
 def sql_query(sql, fetchone=False):
@@ -51,7 +51,9 @@ def sql_query(sql, fetchone=False):
             sys.stderr(err)
             sys.exit(1)
         else:
-            sys.stderr('An error occurred, please contact the database administrator for RDDB.')
+            print('Here!')
+            sys.stderr("Sorry, we couldn't complete your request."
+                       'Please contact the administrator for RDDB.')
 
 # ----------------------------------------------------------------------
 # Functions for Logging Staff In
