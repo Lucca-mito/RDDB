@@ -1,4 +1,4 @@
-# RDRB
+# RDDB
 ## Red Door Database
 A database for management of the Red Door Marketplace at Caltech. 
 
