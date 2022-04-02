@@ -38,22 +38,26 @@ def get_conn():
                        'administrator.')
         sys.exit(1)
 
-def sql_query(sql, fetchone=False):
+def sql_query(sql, fetchone=False, modifies_db=False):
     cursor = conn.cursor()
     try:
         cursor.execute(sql)
         if fetchone:
-            return cursor.fetchone()
+            result = cursor.fetchone()
         else:
-            return cursor.fetchall()
+            result = cursor.fetchall()
+
+        if modifies_db:
+            conn.commit()
+
+        return result
     except mysql.connector.Error as err:
         if DEBUG:
             sys.stderr(err)
-            sys.exit(1)
         else:
-            print('Here!')
-            sys.stderr("Sorry, we couldn't complete your request."
+            print("Sorry, we couldn't complete your request."
                        'Please contact the administrator for RDDB.')
+        sys.exit(1)
 
 # ----------------------------------------------------------------------
 # Functions for Logging Staff In
@@ -107,7 +111,7 @@ def place_order():
     uid = prompt()
 
     sql_query('INSERT INTO rd_order(uid, worker_id) VALUES (%s, %s);' 
-              % (uid, worker_id))
+              % (uid, worker_id), modifies_db=True)
 
     (order_number,) = sql_query('SELECT MAX(order_number) FROM rd_order;', 
                                 fetchone=True)
@@ -129,7 +133,7 @@ def place_order():
         
         sql_query(
             'INSERT INTO order_item(order_number, item_id) VALUES (%s, %s);' 
-            % (order_number, item_id))
+            % (order_number, item_id), modifies_db=True)
 
         (item_name,) = sql_query(
             'SELECT item_name FROM item WHERE item_id = %s' % (item_id,), 
@@ -141,7 +145,7 @@ def place_order():
 
 def cancel_order():
     print()
-    print('What student is asking for a refund?')
+    print('What is the UID of the student asking for a refund?')
     uid = prompt()
 
     sql = ('SELECT order_number, order_date, order_time FROM rd_order ' +
@@ -174,7 +178,7 @@ def cancel_order():
         ans = prompt()
 
         if ans == 'y':
-            sql_query('CALL sp_cancel_order(%s);' % (order_number, ))
+            sql_query('CALL sp_cancel_order(%s);' % (order_number, ), modifies_db=True)
             print(f'Order {order_number} canceled successfully.')
             break
         elif ans == 'n':

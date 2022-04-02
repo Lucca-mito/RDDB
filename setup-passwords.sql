@@ -68,7 +68,7 @@ BEGIN
   VALUES (new_username, 
           id, 
           salt, 
-          SHA2(CONCAT(salt, new_username), 256), 
+          SHA2(CONCAT(salt, password), 256), 
           is_staff);
 END !
 DELIMITER ;
