@@ -4,7 +4,7 @@ import mysql.connector.errorcode as errorcode
 
 # Debugging flag to print errors when debugging that shouldn't be visible
 # to an actual client. Set to False when done testing.
-DEBUG = False
+DEBUG = True
 
 # The UID of the Caltech student currently logged in.
 uid = None
@@ -49,11 +49,11 @@ def sql_query(sql, fetchone=False):
     except mysql.connector.Error as err:
         if DEBUG:
             sys.stderr(err)
-            sys.exit(1)
         else:
-            sys.stderr('Sorry, we are unable to complete your request at this'
+            print('Sorry, we are unable to complete your request at this'
             'time. Please contact the RDDB customer support:\n'
             'rddbsupport@caltech.edu.')
+        sys.exit(1)
 
 def request_menu(where_clause):
     sql = ('SELECT item_name, price, is_barcode, COUNT(*) popularity ' +
@@ -74,14 +74,32 @@ def request_menu(where_clause):
 # Functions for Logging Users In
 # ----------------------------------------------------------------------
 def login():
-    # print('Login')
-    # username = input('Username: ')
-    # password = input('Password: ')
+    while True:
+        print()
+        username = input('Student username: ')
+        password = input('Password: ')
 
-    # sql_query('')
+        (account_exists,) = sql_query("SELECT authenticate('%s', '%s');" 
+                                      % (username, password), fetchone=True)
 
-    global uid
-    uid = 1000
+        if account_exists:
+            (is_staff,) = sql_query("SELECT get_role('%s');" % (username,), 
+                                    fetchone=True)
+            if is_staff:
+                print('You are a staff member. '
+                      'Please use app_staff.py instead.')
+                print()
+                exit(0)
+            else:
+                global uid
+                (uid,) = sql_query("SELECT get_id('%s')" % (username,), 
+                                   fetchone=True)
+                
+                print(f'Welcome, {username}.')
+
+                break
+        else:
+            print('Login failed, please check your username or password.')
 
 # ----------------------------------------------------------------------
 # Command-Line Functionality
@@ -283,6 +301,7 @@ def quit_ui():
     exit()
 
 def main():
+    print('Welcome to RDDB!')
     login()
     show_options()
 

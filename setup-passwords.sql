@@ -85,6 +85,18 @@ RETURN
    WHERE user_info.username = username 
    AND password_hash = SHA2(CONCAT(salt, password), 256));
 
+DROP FUNCTION IF EXISTS get_role;
+CREATE FUNCTION get_role(username VARCHAR(20))
+RETURNS TINYINT DETERMINISTIC
+RETURN
+  (SELECT is_staff FROM user_info WHERE user_info.username = username);
+
+DROP FUNCTION IF EXISTS get_id;
+CREATE FUNCTION get_id(username VARCHAR(20))
+RETURNS INT UNSIGNED DETERMINISTIC
+RETURN
+  (SELECT id FROM user_info WHERE user_info.username = username);
+
 -- [Problem 1c]
 -- Add at least two users into your user_info table so that when we run this 
 -- file, we will have examples users in the database.

@@ -63,14 +63,32 @@ def sql_query(sql, fetchone=False, modifies_db=False):
 # Functions for Logging Staff In
 # ----------------------------------------------------------------------
 def login():
-    # print('Login')
-    # username = input('Username: ')
-    # password = input('Password: ')
+    while True:
+        print()
+        username = input('Red Door staff username: ')
+        password = input('Password: ')
 
-    # sql_query('SELECT authenticate()')
+        (account_exists,) = sql_query("SELECT authenticate('%s', '%s');" 
+                                      % (username, password), fetchone=True)
 
-    global worker_id
-    worker_id = 1
+        if account_exists:
+            (is_staff,) = sql_query("SELECT get_role('%s');" % (username,), 
+                                    fetchone=True)
+            if not is_staff:
+                print('You are a student. '
+                      'Please use app_student.py instead.')
+                print()
+                exit(0)
+            else:
+                global worker_id
+                (worker_id,) = sql_query("SELECT get_id('%s')" % (username,), 
+                                   fetchone=True)
+                
+                print(f'Welcome, {username}.')
+
+                break
+        else:
+            print('Login failed, please check your username or password.')
 
 # ----------------------------------------------------------------------
 # Command-Line Functionality
