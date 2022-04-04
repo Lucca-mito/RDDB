@@ -4,7 +4,7 @@ import mysql.connector.errorcode as errorcode
 
 # Debugging flag to print errors when debugging that shouldn't be visible
 # to an actual client. Set to False when done testing.
-DEBUG = True
+DEBUG = False
 
 # The UID of the Caltech student currently logged in.
 uid = None
